@@ -55,16 +55,17 @@ export default class AutoCorrecter extends Plugin {
 	}
 
 	async onKeyDown(event: KeyboardEvent) {
-		if (event.key === "Enter") {
+		// Only trigger autocorrect on Enter WITHOUT Shift
+    	if (event.key === "Enter" && !event.shiftKey) {
 			const view = this.app.workspace.getActiveViewOfType(MarkdownView);
 			// Make sure the user is editing a Markdown file.
 			if (view) {
 				const cursor = view.editor.getCursor();
 				const text = view.editor.getLine(cursor.line);
-				// Check if the text is empty and return early if it is
-				if (text.trim() === "") {
-					return;
-				}
+				// Return early if line is empty or only punctuation/numbers
+            	if (!text.trim() || /^[\W\d]+$/.test(text)) {
+                	return;
+            	}
 				// LLM has a very hard time reproducing the leading tabs in markdown bullet points
 				const [leadingWhitespace, parsedText] =
 					this.stripLeadingWhitespace(text);
